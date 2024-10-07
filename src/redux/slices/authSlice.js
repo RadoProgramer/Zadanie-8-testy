@@ -1,34 +1,37 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { registerUser, loginUser } from '../../api/contactsAPI';
+import { registerUser, loginUser, getCurrentUser } from '../../api/userAPI';
 
 const initialState = {
   user: null,
   token: null,
+  isLoggedIn: false,
   loading: false,
   error: null,
 };
 
-export const userRegistration = createAsyncThunk(
-  'auth/register',
-  async (userData, { rejectWithValue }) => {
-    try {
-      return await registerUser(userData);
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
+export const register = createAsyncThunk('auth/register', async (userData, { rejectWithValue }) => {
+  try {
+    return await registerUser(userData);
+  } catch (error) {
+    return rejectWithValue(error.response.data);
   }
-);
+});
 
-export const userLogin = createAsyncThunk(
-  'auth/login',
-  async (credentials, { rejectWithValue }) => {
-    try {
-      return await loginUser(credentials);
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
+export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
+  try {
+    return await loginUser(credentials);
+  } catch (error) {
+    return rejectWithValue(error.response.data);
   }
-);
+});
+
+export const fetchCurrentUser = createAsyncThunk('auth/fetchCurrentUser', async (token, { rejectWithValue }) => {
+  try {
+    return await getCurrentUser(token);
+  } catch (error) {
+    return rejectWithValue(error.response.data);
+  }
+});
 
 const authSlice = createSlice({
   name: 'auth',
@@ -37,31 +40,37 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
+      state.isLoggedIn = false;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(userRegistration.pending, (state) => {
+      .addCase(register.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(userRegistration.fulfilled, (state, action) => {
+      .addCase(register.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.isLoggedIn = true;
       })
-      .addCase(userRegistration.rejected, (state, action) => {
+      .addCase(register.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(userLogin.pending, (state) => {
+
+      .addCase(login.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(userLogin.fulfilled, (state, action) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.isLoggedIn = true;
       })
-      .addCase(userLogin.rejected, (state, action) => {
+      .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -70,3 +79,4 @@ const authSlice = createSlice({
 
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;
+

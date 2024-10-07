@@ -1,28 +1,65 @@
-import useContacts from "../hooks/useContacts";
+import { useEffect } from "react";
+import ContactForm from "../components/ContactForm/ContactForm";
+import ContactList from "../components/ContactList/ContactList";
+import SearchBox from "../components/SearchBox/SearchBox";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchContacts,
+  addContact,
+  deleteContact,
+} from "../redux/slices/contactsSlice";
+import { setFilter } from "../redux/slices/filtersSlice";
 
-const ContactsPage = () => {
-	const { contacts, loading, error, addNewContact, removeContact } =
-		useContacts();
+const Contacts = () => {
+  const {
+    items: contacts,
+    loading,
+    error,
+  } = useSelector((state) => state.contacts);
+  const filter = useSelector((state) => state.filters.name);
+  const dispatch = useDispatch();
 
-	if (loading) return <div>Loading...</div>;
-	if (error) return <div>Error: {error}</div>;
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
-	return (
-		<div>
-			<h1>Your Contacts</h1>
-			<ul>
-				{contacts.map((contact) => (
-					<li key={contact.id}>
-						{contact.name}{" "}
-						<button onClick={() => removeContact(contact.id)}>Delete</button>
-					</li>
-				))}
-			</ul>
-			<button onClick={() => addNewContact({ name: "New Contact" })}>
-				Add Contact
-			</button>
-		</div>
-	);
+  const handleAddContact = (contact) => {
+    const isDuplicate = contacts.some(
+      (existingContact) =>
+        existingContact.name.toLowerCase() === contact.name.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      alert(`${contact.name} is already in the contacts.`);
+      return;
+    }
+
+    dispatch(addContact(contact));
+  };
+
+  const handleDeleteContact = (id) => {
+    dispatch(deleteContact(id));
+  };
+
+  const handleFilterChange = (e) => {
+    dispatch(setFilter(e.currentTarget.value));
+  };
+
+  const filteredContacts = contacts.filter((contact) =>
+    contact.name.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  return (
+    <div className="contacts">
+      <h1>Phonebook</h1>
+      {loading && <p>Loading contacts...</p>}
+      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      <ContactForm onAddContact={handleAddContact} />
+      <h2>Contacts</h2>
+      <SearchBox filter={filter} onChange={handleFilterChange} />
+      <ContactList contacts={filteredContacts} onDelete={handleDeleteContact} />
+    </div>
+  );
 };
 
-export default ContactsPage;
+export default Contacts;

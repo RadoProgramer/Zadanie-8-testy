@@ -8,22 +8,25 @@ import { useEffect } from "react";
 
 const useContacts = () => {
   const dispatch = useDispatch();
-  const {
-    items: contacts,
-    loading,
-    error,
-  } = useSelector((state) => state.contacts);
+  const { items: contacts, loading, error } = useSelector((state) => state.contacts);
+  const { token } = useSelector((state) => state.auth); // Dodanie tokena z authSlice
 
   useEffect(() => {
-    dispatch(fetchContacts());
-  }, [dispatch]);
+    if (token) {
+      dispatch(fetchContacts(token)); // Przekazanie tokena do akcji pobierania kontaktów
+    }
+  }, [dispatch, token]);
 
   const addNewContact = (contact) => {
-    dispatch(addContact(contact));
+    if (token) {
+      dispatch(addContact({ contact, token })); // Przekazanie tokena do akcji dodawania kontaktu
+    }
   };
 
   const removeContact = (id) => {
-    dispatch(deleteContact(id));
+    if (token) {
+      dispatch(deleteContact({ id, token })); // Przekazanie tokena do akcji usuwania kontaktu
+    }
   };
 
   return {
