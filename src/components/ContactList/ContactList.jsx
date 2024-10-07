@@ -1,4 +1,3 @@
-import React from "react";
 import PropTypes from "prop-types";
 import ContactItem from "../ContactItem/ContactItem";
 import styles from "./ContactList.module.css";
@@ -18,7 +17,7 @@ ContactList.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
+      phone: PropTypes.string.isRequired,
     })
   ).isRequired,
   onDelete: PropTypes.func.isRequired,
